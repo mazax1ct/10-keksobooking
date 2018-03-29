@@ -1,7 +1,7 @@
 # Личный проект «Кексобукинг» [![Build status][travis-image]][travis-url]
 
 * Студент: [Владимир Смирнов](https://up.htmlacademy.ru/javascript/13/user/10).
-* Наставник: `Неизвестно`.
+* Наставник: `Константин Мамаев`.
 
 ---
 
