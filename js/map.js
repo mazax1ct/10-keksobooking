@@ -93,7 +93,7 @@ var drawPins = function (adsArray) {
   var pinFragment = document.createDocumentFragment();
   adsArray.forEach(function (ad, i) {
     var pinElement = pinTemplate.cloneNode(true);
-    pinElement.setAttribute('data-target', 'popup_' + i);
+    pinElement.setAttribute('data-target', i);
     pinElement.style.left = ad.location.x - pinElement.offsetWidth / 2 + 'px';
     pinElement.style.top = ad.location.y - pinElement.offsetHeight + 'px';
     pinElement.querySelector('img').src = ad.author.avatar;
@@ -110,48 +110,44 @@ var pinsList = document.querySelector('.map__pins');
 var adTemplate = document.querySelector('template').content.querySelector('.map__card');
 
 // функция отрисовки карточки объявления из массива объявлений
-var drawAd = function (adsArray) {
+var drawAd = function (adsArray, i) {
   var adFragment = document.createDocumentFragment();
-  adsArray.forEach(function (ad, i) {
-    var adElement = adTemplate.cloneNode(true);
-    adElement.classList.add('hidden');
-    adElement.setAttribute('id', 'popup_' + i);
-    adElement.querySelector('.popup__title').textContent = ad.offer.title;
-    adElement.querySelector('.popup__text--address').textContent = ad.offer.address;
-    var typeTranslate = '';
-    adElement.querySelector('.popup__text--price').textContent = ad.offer.price + '₽/ночь';
-    // как мне кажется тут лучше воспользоваться перебором массива соответствий, но его нет
-    if (ad.offer.type === 'flat') {
-      typeTranslate = 'Квартира';
-    } else if (ad.offer.type === 'bungalo') {
-      typeTranslate = 'Бунгало';
-    } else if (ad.offer.type === 'house') {
-      typeTranslate = 'Дом';
-    } else if (ad.offer.type === 'palace') {
-      typeTranslate = 'Дворец';
-    }
-    adElement.querySelector('.popup__type').textContent = typeTranslate;
-    adElement.querySelector('.popup__text--capacity').textContent = ad.offer.rooms + ' комнаты для ' + ad.offer.guests + ' гостей';
-    adElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + ad.offer.checkin + ', выезд до ' + ad.offer.checkout;
-    var featuresList = adElement.querySelector('.popup__features');
-    featuresList.innerHTML = '';
-    ad.offer.features.forEach(function (feature) {
-      var featureElement = document.createElement('li');
-      featureElement.classList.add('popup__feature', 'popup__feature--' + feature);
-      featuresList.appendChild(featureElement);
-    });
-    adElement.querySelector('.popup__description').textContent = ad.offer.description;
-    var photoFragment = document.createDocumentFragment();
-    ad.offer.photos.forEach(function (photo) {
-      var photoElement = document.querySelector('template').content.querySelector('.popup__photo').cloneNode(true);
-      photoElement.src = photo;
-      photoFragment.appendChild(photoElement);
-    });
-    adElement.querySelector('.popup__photos').innerHTML = '';
-    adElement.querySelector('.popup__photos').appendChild(photoFragment);
-    adElement.querySelector('.popup__avatar').src = ad.author.avatar;
-    adFragment.appendChild(adElement);
+  var adElement = adTemplate.cloneNode(true);
+  adElement.querySelector('.popup__title').textContent = adsArray[i].offer.title;
+  adElement.querySelector('.popup__text--address').textContent = adsArray[i].offer.address;
+  var typeTranslate = '';
+  adElement.querySelector('.popup__text--price').textContent = adsArray[i].offer.price + '₽/ночь';
+  // как мне кажется тут лучше воспользоваться перебором массива соответствий, но его нет
+  if (adsArray[i].offer.type === 'flat') {
+    typeTranslate = 'Квартира';
+  } else if (adsArray[i].offer.type === 'bungalo') {
+    typeTranslate = 'Бунгало';
+  } else if (adsArray[i].offer.type === 'house') {
+    typeTranslate = 'Дом';
+  } else if (adsArray[i].offer.type === 'palace') {
+    typeTranslate = 'Дворец';
+  }
+  adElement.querySelector('.popup__type').textContent = typeTranslate;
+  adElement.querySelector('.popup__text--capacity').textContent = adsArray[i].offer.rooms + ' комнаты для ' + adsArray[i].offer.guests + ' гостей';
+  adElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + adsArray[i].offer.checkin + ', выезд до ' + adsArray[i].offer.checkout;
+  var featuresList = adElement.querySelector('.popup__features');
+  featuresList.innerHTML = '';
+  adsArray[i].offer.features.forEach(function (feature) {
+    var featureElement = document.createElement('li');
+    featureElement.classList.add('popup__feature', 'popup__feature--' + feature);
+    featuresList.appendChild(featureElement);
   });
+  adElement.querySelector('.popup__description').textContent = adsArray[i].offer.description;
+  var photoFragment = document.createDocumentFragment();
+  adsArray[i].offer.photos.forEach(function (photo) {
+    var photoElement = document.querySelector('template').content.querySelector('.popup__photo').cloneNode(true);
+    photoElement.src = photo;
+    photoFragment.appendChild(photoElement);
+  });
+  adElement.querySelector('.popup__photos').innerHTML = '';
+  adElement.querySelector('.popup__photos').appendChild(photoFragment);
+  adElement.querySelector('.popup__avatar').src = adsArray[i].author.avatar;
+  adFragment.appendChild(adElement);
   return adFragment;
 };
 
@@ -171,7 +167,7 @@ var mainPin = document.querySelector('.map__pin--main');
 var adForm = document.querySelector('.ad-form');
 var addressInput = document.querySelector('#address');
 var mapPins;
-var popups;
+var popup;
 
 // функция получения начального адреса (середина точки)
 var getStartAddress = function (element) {
@@ -218,17 +214,6 @@ var mainPinFirstClickHandler = function (evt) {
     pin.addEventListener('keydown', mapPinKeyDownHandler);
   });
 
-  // отрисовка попапов объявлений
-  var adPopups = drawAd(ads);
-  map.insertBefore(adPopups, map.querySelector('.map__filters-container'));
-
-  // ловим отрисованные попапы и регистрируем их кнопкам закрытия обработчики
-  popups = document.querySelectorAll('.map__card');
-  popups.forEach(function (popup) {
-    var popupCloser = popup.querySelector('.popup__close');
-    popupCloser.addEventListener('mouseup', popupCloseClickHandler);
-    popupCloser.addEventListener('keydown', popupCloseEnterHandler);
-  });
   // удаляем обработчик первого клика
   mainPin.removeEventListener('mouseup', mainPinFirstClickHandler);
 };
@@ -248,20 +233,27 @@ mainPin.addEventListener('mouseup', mainPinDragHandler);
 
 // функция закрытия попапа
 var closePopup = function () {
-  // ищем открытый попап и если он есть, тоглим классы
-  var openedPopup = map.querySelector('.map__card.opened');
+  // ищем открытый попап и если он есть, удаляем его
+  var openedPopup = map.querySelector('.map__card');
   if (openedPopup !== null) {
-    openedPopup.classList.add('hidden');
-    openedPopup.classList.remove('opened');
+    map.removeChild(openedPopup);
   }
 };
 
 // функция открытия попапа
 var openPopup = function (item) {
-  var target = item.target.attributes.getNamedItem('data-target').value;
-  var currentPopup = map.querySelector('#' + target);
-  currentPopup.classList.remove('hidden');
-  currentPopup.classList.add('opened');
+  // получаем значение id объявления для отрисовки попапа
+  var popupId = item.target.attributes.getNamedItem('data-target').value;
+
+  // отрисовка и вставка попапа объявления
+  var adPopup = drawAd(ads, popupId);
+  map.insertBefore(adPopup, map.querySelector('.map__filters-container'));
+
+  // ловим отрисованный попап и регистрируем кнопке закрытия обработчики
+  popup = document.querySelector('.map__card');
+  var popupCloser = popup.querySelector('.popup__close');
+  popupCloser.addEventListener('mouseup', popupCloseClickHandler);
+  popupCloser.addEventListener('keydown', popupCloseEnterHandler);
 };
 
 // функция обработчика клика по точке объявления на карте
