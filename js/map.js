@@ -243,7 +243,13 @@ var closePopup = function () {
 // функция открытия попапа
 var openPopup = function (item) {
   // получаем значение id объявления для отрисовки попапа
-  var popupId = item.target.attributes.getNamedItem('data-target').value;
+  var popupId;
+  // проверим попали ли мы в кнопку, а не в картинку внутри
+  if (item.target.tagName.toLowerCase() === 'img') {
+    popupId = item.target.parentElement.attributes.getNamedItem('data-target').value;
+  } else {
+    popupId = item.target.attributes.getNamedItem('data-target').value;
+  }
 
   // отрисовка и вставка попапа объявления
   var adPopup = drawAd(ads, popupId);
