@@ -244,12 +244,8 @@ var closePopup = function () {
 var openPopup = function (item) {
   // получаем значение id объявления для отрисовки попапа
   var popupId;
-  // проверим попали ли мы в кнопку, а не в картинку внутри
-  if (item.target.tagName.toLowerCase() === 'img') {
-    popupId = item.target.parentElement.attributes.getNamedItem('data-target').value;
-  } else {
-    popupId = item.target.attributes.getNamedItem('data-target').value;
-  }
+  // currentTarget - ловим кнопку (в хроме и мозилле по target события отрабатывают по разному, хром ловит нажатие по картинке)
+  popupId = item.currentTarget.attributes.getNamedItem('data-target').value;
 
   // отрисовка и вставка попапа объявления
   var adPopup = drawAd(ads, popupId);
