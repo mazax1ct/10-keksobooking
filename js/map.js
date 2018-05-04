@@ -16,8 +16,10 @@
     reset: function () {
       // убираем затенение с карты
       map.classList.add('map--faded');
+      // возвращаем главный пин в исходное положение
       mainPin.style.top = '375px';
       mainPin.style.left = '570px';
+      // сбрасываем форму
       window.form.reset(adForm, formFieldset);
     },
     // функция получения начального адреса (середина точки)
@@ -25,6 +27,7 @@
       var leftOffset = parseInt(element.style.left, 10);
       var topOffset = parseInt(element.style.top, 10);
       var height;
+      // разный рассчет высоты главного пина в зависимости от состояния карты
       if (map.classList.contains('map--faded')) {
         height = Math.floor(parseInt(getComputedStyle(element).height, 10) / 2);
       } else {
