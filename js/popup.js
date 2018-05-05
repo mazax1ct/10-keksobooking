@@ -68,7 +68,7 @@
       popupId = item.currentTarget.attributes.getNamedItem('data-target').value;
 
       // отрисовка и вставка попапа объявления (данные импортируются из модуля создания массива объявлений data.js)
-      var adPopup = drawPopup(window.data, popupId);
+      var adPopup = drawPopup(window.data.get(), popupId);
       map.insertBefore(adPopup, map.querySelector('.map__filters-container'));
 
       // ловим отрисованный попап и регистрируем кнопке закрытия обработчики и обработчик закрытия по esc

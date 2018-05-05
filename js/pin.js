@@ -43,7 +43,7 @@
         var pinsList = document.querySelector('.map__pins');
 
         // отрисовка точек на карте
-        var pins = window.pins.draw(window.data);
+        var pins = window.pins.draw(window.data.get());
         pinsList.appendChild(pins);
 
         // ловим отрисованные точки и регистрируем им обработчики

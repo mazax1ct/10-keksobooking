@@ -1,7 +1,7 @@
 'use strict';
 (function () {
   // мокинг
-  var OFFER_TITLES = [
+  /* var OFFER_TITLES = [
     'Большая уютная квартира',
     'Маленькая неуютная квартира',
     'Огромный прекрасный дворец',
@@ -40,10 +40,10 @@
     'http://o0.github.io/assets/images/tokyo/hotel3.jpg'
   ];
 
-  var ADS_COUNT = 8;
+  var ADS_COUNT = 8;*/
 
   // функция создание массива объявлений
-  var makeAdsArray = function () {
+  /* var makeAdsArray = function () {
     var adsArray = [];
     for (var i = 0; i < ADS_COUNT; i++) {
       var x = String(window.util.getRandomArbitary(300, 900));
@@ -75,7 +75,19 @@
       adsArray.push(ad);
     }
     return adsArray;
-  };
+  };*/
   // записываем результат в переменную и экспортируем в глобальную область видимости
-  window.data = makeAdsArray();
+
+  var offers = null;
+
+  window.data = {
+    get: function () {
+      return offers;
+    },
+    set: function (data) {
+      offers = data;
+    }
+  };
+
+  window.backend.download(window.data.set, window.backend.error);
 })();
