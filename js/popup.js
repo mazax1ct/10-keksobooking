@@ -67,8 +67,8 @@
       // currentTarget - ловим кнопку (в хроме и мозилле по target события отрабатывают по разному, хром ловит нажатие по картинке)
       popupId = item.currentTarget.attributes.getNamedItem('data-target').value;
 
-      // отрисовка и вставка попапа объявления (данные импортируются из модуля создания массива объявлений data.js)
-      var adPopup = drawPopup(window.data.get(), popupId);
+      // отрисовка и вставка попапа объявления (данные берем из глобальной области видимости, т.к. ранее их туда уже экспортировали)
+      var adPopup = drawPopup(window.ads, popupId);
       map.insertBefore(adPopup, map.querySelector('.map__filters-container'));
 
       // ловим отрисованный попап и регистрируем кнопке закрытия обработчики и обработчик закрытия по esc

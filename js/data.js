@@ -77,17 +77,4 @@
     return adsArray;
   };*/
   // записываем результат в переменную и экспортируем в глобальную область видимости
-
-  var offers = null;
-
-  window.data = {
-    get: function () {
-      return offers;
-    },
-    set: function (data) {
-      offers = data;
-    }
-  };
-
-  window.backend.download(window.data.set, window.backend.error);
 })();
