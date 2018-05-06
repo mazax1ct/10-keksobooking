@@ -1,5 +1,9 @@
 'use strict';
 (function () {
+  var adForm = document.querySelector('.ad-form');
+  var resetBtn = adForm.querySelector('.ad-form__reset');
+  var success = document.querySelector('.success');
+
   window.form = {
     // инициализаци формы
     init: function (form, elements) {
@@ -11,13 +15,9 @@
       });
     },
     // сброс формы
-    reset: function (form, elements) {
-      // добавляем класс затенения
-      form.classList.add('ad-form--disabled');
-      // вешаем атрибуты disabled
-      elements.forEach(function (element) {
-        element.setAttribute('disabled', 'disabled');
-      });
+    reset: function () {
+      // просто перезагружаем страницу
+      window.location.reload();
     }
   };
 
@@ -100,4 +100,29 @@
   };
 
   roomNumber.addEventListener('change', changeRoomNumberSelect);
+
+  // обработчик на успешную отправку формы
+  var onFormSubmit = function (evt) {
+    // убираем поведение по умолчанию
+    evt.preventDefault();
+
+    // если форма валидна, отправляем и показываем блок с сообщением об успехе, если нет, показываем ошибку
+    window.backend.upload(new FormData(adForm), function () {
+      success.classList.remove('hidden');
+      // через 3 сек скрываем сообщение об успехе
+      setTimeout(function () {
+        success.classList.add('hidden');
+        // сбрасываем форму
+        window.form.reset();
+      }, 3000);
+    }, window.backend.error);
+  };
+
+  adForm.addEventListener('submit', onFormSubmit);
+
+  // сброс формы
+  resetBtn.addEventListener('click', function (evt) {
+    evt.preventDefault();
+    window.form.reset();
+  });
 })();

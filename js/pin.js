@@ -3,6 +3,7 @@
   // введем ограничения на возможные координаты основной точки
   var TOP_STOP = 150;
   var BOTTOM_STOP = 500;
+  var PINS_AMOUNT = 5;
 
   var map = document.querySelector('.map');
   var adForm = document.querySelector('.ad-form');
@@ -42,16 +43,23 @@
         // определям блок для точек
         var pinsList = document.querySelector('.map__pins');
 
-        // отрисовка точек на карте
-        var pins = window.pins.draw(window.data);
-        pinsList.appendChild(pins);
-
-        // ловим отрисованные точки и регистрируем им обработчики
-        mapPins = document.querySelectorAll('.map__pin:not(.map__pin--main)');
-        mapPins.forEach(function (pin) {
-          pin.addEventListener('mouseup', mapPinClickHandler);
-          pin.addEventListener('keydown', mapPinKeyDownHandler);
-        });
+        // отрисовка точек на карте после загрузки данных
+        var onLoad = function (data) {
+          // сразу экспортируем данные в глобальную область видимости, для отрисовки попапа
+          window.ads = data;
+          // обрезаем массив до n-элементов по ТЗ
+          var slicedAds = window.ads.slice(PINS_AMOUNT);
+          // вставляем
+          pinsList.append(window.pins.draw(slicedAds));
+          // ловим отрисованные точки и регистрируем им обработчики
+          mapPins = document.querySelectorAll('.map__pin:not(.map__pin--main)');
+          mapPins.forEach(function (pin) {
+            pin.addEventListener('mouseup', mapPinClickHandler);
+            pin.addEventListener('keydown', mapPinKeyDownHandler);
+          });
+        };
+        // функция загрузки с коллбеком
+        window.backend.download(onLoad, window.backend.error);
       }
 
       // пишем начальные координаты в переменную
