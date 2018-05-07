@@ -18,6 +18,15 @@
     '100': ['0']
   };
 
+  var pageReset = function () {
+    window.map.reset();
+    window.pins.remove();
+    window.popup.close();
+    window.filter.reset();
+    window.form.reset();
+    window.pin.reset();
+  };
+
   window.form = {
     // инициализаци формы
     init: function () {
@@ -124,8 +133,8 @@
       // через 3 сек скрываем сообщение об успехе
       setTimeout(function () {
         success.classList.add('hidden');
-        // сбрасываем форму
-        window.form.reset();
+        // сбрасываем страницу
+        pageReset();
       }, 3000);
     }, window.backend.error);
   };
@@ -136,11 +145,6 @@
   // сброс формы
   resetBtn.addEventListener('click', function (evt) {
     evt.preventDefault();
-    window.map.reset();
-    window.pins.remove();
-    window.popup.close();
-    window.filter.reset();
-    window.form.reset();
-    window.pin.reset();
+    pageReset();
   });
 })();
