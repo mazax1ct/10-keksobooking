@@ -1,34 +1,54 @@
 'use strict';
 (function () {
-  var adForm = document.querySelector('.ad-form');
-  var resetBtn = adForm.querySelector('.ad-form__reset');
-  var success = document.querySelector('.success');
+  var adForm = document.querySelector('.ad-form'); // форма
+  var formFieldset = document.querySelectorAll('.map__filter, .map__features, .ad-form__element'); // ищем не активные элементы форм
+  var resetBtn = adForm.querySelector('.ad-form__reset'); // кнопка сброса
+  var success = document.querySelector('.success'); // блок "успех"
+  var typeSelect = adForm.querySelector('#type'); // селект тип жилья
+  var priceInput = adForm.querySelector('#price'); // инпут цена
+  var timeIn = adForm.querySelector('#timein'); // селект время въезда
+  var timeOut = adForm.querySelector('#timeout'); // селект время выезда
+  var roomNumber = adForm.querySelector('#room_number'); // селект кол-во комнат
+  var capacity = adForm.querySelector('#capacity'); // селект кол-во мест
+  var capacityOptions = capacity.querySelectorAll('option'); // выбор option из селекта кол-во мест
+  var roomNumberCapacity = { // соответствие значений value кол-ва номеров и value option из селект кол-во мест
+    '1': ['1'],
+    '2': ['1', '2'],
+    '3': ['1', '2', '3'],
+    '100': ['0']
+  };
 
   window.form = {
     // инициализаци формы
-    init: function (form, elements) {
+    init: function () {
       // убираем класс затенения
-      form.classList.remove('ad-form--disabled');
+      adForm.classList.remove('ad-form--disabled');
       // снимаем атрибуты disabled с полей
-      elements.forEach(function (element) {
+      formFieldset.forEach(function (element) {
         element.removeAttribute('disabled');
       });
     },
     // сброс формы
     reset: function () {
-      // просто перезагружаем страницу
-      window.location.reload();
+      // добавляем класс затенения
+      adForm.classList.add('ad-form--disabled');
+      // сбрасываем значения полей формы
+      adForm.reset();
+      // вешаем атрибуты disabled на поля
+      formFieldset.forEach(function (element) {
+        element.setAttribute('disabled', 'disabled');
+      });
     }
   };
 
-  // вводим переменные, ищем блоки
-  var typeSelect = document.querySelector('#type');
-  var priceInput = document.querySelector('#price');
+  // ************ действия с элементами формы ************
+
   // функция смены атрибутов, принимает 2 параметра элемент и новое значение атрибута
   var changeInputOptions = function (item, value) {
     item.setAttribute('min', value);
     item.setAttribute('placeholder', value);
   };
+
   // функция обработчика изменения типа жилья
   var changeTypeSelect = function (evt) {
     if (evt.target.value === 'bungalo') {
@@ -41,38 +61,29 @@
       changeInputOptions(priceInput, 10000);
     }
   };
+
   // добавляем обработчик изменения типа жилья
   typeSelect.addEventListener('change', changeTypeSelect);
 
-  // вводим переменные, ищем блоки
-  var timeIn = document.querySelector('#timein');
-  var timeOut = document.querySelector('#timeout');
-
   // функция обработчика изменения времени заезда/выезда
   var changeTimeInOutSelect = function (evt) {
+    // получаем id элемента который меняем
     var id = evt.target.attributes.getNamedItem('id').value;
     var select;
+    // проеряем id и устанавливаем какой из парных элементов нужно менять
     if (id === 'timein') {
-      select = document.querySelector('#timeout');
+      select = timeOut;
     } else if (id === 'timeout') {
-      select = document.querySelector('#timein');
+      select = timeIn;
     }
+    // устанавливаем новое значение парному селекту
     select.value = evt.target.value;
   };
 
+  // вешаем обработчик на селекты
   timeIn.addEventListener('change', changeTimeInOutSelect);
   timeOut.addEventListener('change', changeTimeInOutSelect);
 
-  // вводим переменные, ищем блоки
-  var roomNumber = document.querySelector('#room_number');
-  var capacity = document.querySelector('#capacity');
-  var capacityOptions = capacity.querySelectorAll('option');
-  var roomNumberCapacity = {
-    '1': ['1'],
-    '2': ['1', '2'],
-    '3': ['1', '2', '3'],
-    '100': ['0']
-  };
   // функция изменения атрибутов
   var setDisabledAttr = function (element) {
     // бежим по списку элементов
@@ -88,6 +99,7 @@
     });
   };
 
+  // функция обработчика изменения селекта с кол-вом комнат
   var changeRoomNumberSelect = function (evt) {
     var value = evt.target.value;
     var selectValue = roomNumberCapacity[value];
@@ -98,16 +110,16 @@
     // принудительное изменение select с количеством гостей для mozilla/edge
     capacity.value = selectValue[0];
   };
-
+  // навешиваем обработчик
   roomNumber.addEventListener('change', changeRoomNumberSelect);
 
   // обработчик на успешную отправку формы
   var onFormSubmit = function (evt) {
     // убираем поведение по умолчанию
     evt.preventDefault();
-
-    // если форма валидна, отправляем и показываем блок с сообщением об успехе, если нет, показываем ошибку
+    // если форма валидна, отправляем и показываем блок с сообщением об успехе, если нет, показываем ошибку (new FormData(adForm) создает форму с данными из нашей формы)
     window.backend.upload(new FormData(adForm), function () {
+      // показываем блок успеха
       success.classList.remove('hidden');
       // через 3 сек скрываем сообщение об успехе
       setTimeout(function () {
@@ -118,11 +130,17 @@
     }, window.backend.error);
   };
 
+  // навешиваем обработчик на отправку формы
   adForm.addEventListener('submit', onFormSubmit);
 
   // сброс формы
   resetBtn.addEventListener('click', function (evt) {
     evt.preventDefault();
+    window.map.reset();
+    window.pins.remove();
+    window.popup.close();
+    window.filter.reset();
     window.form.reset();
+    window.pin.reset();
   });
 })();

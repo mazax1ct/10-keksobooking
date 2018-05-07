@@ -1,19 +1,22 @@
 'use strict';
 (function () {
-  // ищем  блок карты
-  var map = document.querySelector('.map');
-  // выбираем шаблон для попапа
-  var adTemplate = document.querySelector('template').content.querySelector('.map__card');
+  var map = document.querySelector('.map'); // блок карты
+  var adTemplate = document.querySelector('template').content.querySelector('.map__card'); // выбираем шаблон для попапа
 
-  // функция отрисовки попапа
+  // функция отрисовки попапа принимает массив данных и id для выбора элемента из массива
   var drawPopup = function (adsArray, i) {
+    // создаем фрагмент
     var adFragment = document.createDocumentFragment();
+    // копируем разметку
     var adElement = adTemplate.cloneNode(true);
+    // пишем заголовок
     adElement.querySelector('.popup__title').textContent = adsArray[i].offer.title;
+    // пишем адрес
     adElement.querySelector('.popup__text--address').textContent = adsArray[i].offer.address;
-    var typeTranslate = '';
+    // пишем цену
     adElement.querySelector('.popup__text--price').textContent = adsArray[i].offer.price + '₽/ночь';
-    // как мне кажется тут лучше воспользоваться перебором массива соответствий, но его нет
+    // в соответствии с типом жилья устанавливаем значение
+    var typeTranslate = '';
     if (adsArray[i].offer.type === 'flat') {
       typeTranslate = 'Квартира';
     } else if (adsArray[i].offer.type === 'bungalo') {
@@ -24,8 +27,11 @@
       typeTranslate = 'Дворец';
     }
     adElement.querySelector('.popup__type').textContent = typeTranslate;
+    // пишем комнаты и кол-во гостей
     adElement.querySelector('.popup__text--capacity').textContent = adsArray[i].offer.rooms + ' комнаты для ' + adsArray[i].offer.guests + ' гостей';
+    // пишем время заезда/выезда
     adElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + adsArray[i].offer.checkin + ', выезд до ' + adsArray[i].offer.checkout;
+    // пишем перебираем массив доп. услуг и рисуем блоки
     var featuresList = adElement.querySelector('.popup__features');
     featuresList.innerHTML = '';
     adsArray[i].offer.features.forEach(function (feature) {
@@ -33,7 +39,9 @@
       featureElement.classList.add('popup__feature', 'popup__feature--' + feature);
       featuresList.appendChild(featureElement);
     });
+    // пишем описание
     adElement.querySelector('.popup__description').textContent = adsArray[i].offer.description;
+    // перебираем массив с картинками и рисуем блоки
     var photoFragment = document.createDocumentFragment();
     adsArray[i].offer.photos.forEach(function (photo) {
       var photoElement = document.querySelector('template').content.querySelector('.popup__photo').cloneNode(true);
@@ -42,8 +50,11 @@
     });
     adElement.querySelector('.popup__photos').innerHTML = '';
     adElement.querySelector('.popup__photos').appendChild(photoFragment);
+    // рисуем аватар
     adElement.querySelector('.popup__avatar').src = adsArray[i].author.avatar;
+    // вставляем новую разметку в фрагмент
     adFragment.appendChild(adElement);
+    // возвращаем фрагмент
     return adFragment;
   };
 
@@ -57,7 +68,6 @@
         document.removeEventListener('keydown', popupCloseEscHandler);
       }
     },
-
     // функция открытия попапа
     open: function (item) {
       // закрываем открытый попап
@@ -74,7 +84,7 @@
       // ловим отрисованный попап и регистрируем кнопке закрытия обработчики и обработчик закрытия по esc
       var popup = document.querySelector('.map__card');
       var popupCloser = popup.querySelector('.popup__close');
-
+      // навешиваем обработчики
       popupCloser.addEventListener('mouseup', popupCloseClickHandler);
       popupCloser.addEventListener('keydown', popupCloseEnterHandler);
       document.addEventListener('keydown', popupCloseEscHandler);
@@ -85,10 +95,12 @@
   var popupCloseClickHandler = function () {
     window.popup.close();
   };
+
   // функция обработчика нажатия enter по кнопке закрытия попапа
   var popupCloseEnterHandler = function (evt) {
     window.util.isEnterEvent(evt, window.popup.close);
   };
+
   // функция обработчика нажатия esc по кнопке закрытия попапа
   var popupCloseEscHandler = function (evt) {
     window.util.isEscEvent(evt, window.popup.close);

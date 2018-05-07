@@ -1,141 +1,159 @@
 'use strict';
 (function () {
-  // введем ограничения на возможные координаты основной точки
-  var TOP_STOP = 150;
-  var BOTTOM_STOP = 500;
-  var PINS_AMOUNT = 5;
+  var map = document.querySelector('.map'); // блок карты
+  var mainPin = document.querySelector('.map__pin--main'); // блок главного пина
+  var addressInput = document.querySelector('#address'); // инпут адреса
 
-  var map = document.querySelector('.map');
-  var adForm = document.querySelector('.ad-form');
-  var formFieldset = document.querySelectorAll('.map__filter, .map__features, .ad-form__element'); // ищем не активные элементы форм
-  var addressInput = document.querySelector('#address');
-  var mapPins;
+  // функция активации страницы
+  var pageActivate = function () {
+    // если карта не активна
+    if (map.classList.contains('map--faded')) {
+      // активируем карту
+      window.map.init();
 
-  // функция обработчика клика по точке объявления на карте
-  var mapPinClickHandler = function (evt) {
-    // открываем необходимый попап
-    window.popup.open(evt);
+      // активируем форму под картой и фильтр
+      window.form.init();
+
+      // получаем и устанавливаем адрес
+      window.pin.address();
+
+      // отрисовка точек на карте после загрузки данных
+      var onLoad = function (data) {
+        // сразу экспортируем данные в глобальную область видимости, для отрисовки попапа
+        window.ads = data;
+        // вставляем
+        window.pins.draw(data, window.constants.pinsAmount);
+      };
+
+      // функция загрузки с коллбеком
+      window.backend.download(onLoad, window.backend.error);
+    }
   };
 
-  // функция обработчика нажатия enter по точке объявления на карте
-  var mapPinKeyDownHandler = function (evt) {
-    window.util.isEnterEvent(evt, window.popup.open);
-  };
+  // функция обработчика перетаскивания главной точки
+  var mainPinDragHandler = function (evt) {
+    // отменяем события по умолчанию
+    evt.preventDefault();
 
-  window.pin = function (element) {
-    // навешиваем обработчик на нажите мыши
-    element.addEventListener('mousedown', function (evt) {
+    // активируем страницу
+    pageActivate();
+
+    // пишем начальные координаты в переменную
+    var startCoords = {
+      x: evt.clientX,
+      y: evt.clientY
+    };
+
+    // обработчик перемещения мыши
+    var onMouseMove = function (moveEvt) {
       // отменяем события по умолчанию
-      evt.preventDefault();
+      moveEvt.preventDefault();
 
-      // если карта не активна
-      if (map.classList.contains('map--faded')) {
-        // активируем карту
-        window.map.init();
+      // считаем разницу между начальными координатами и точкой куда переместили блок
+      var shift = {
+        x: startCoords.x - moveEvt.clientX,
+        y: startCoords.y - moveEvt.clientY
+      };
 
-        // активируем форму под картой и фильтр
-        window.form.init(adForm, formFieldset);
+      // перезаписываем начальные координаты
+      startCoords = {
+        x: moveEvt.clientX,
+        y: moveEvt.clientY
+      };
 
-        // получаем адрес
-        var address = window.map.address(element);
-        addressInput.value = String(address);
+      // переопределяем переменные для удобства
+      var pinYCoord = mainPin.offsetTop - shift.y;
+      var pinXCoord = mainPin.offsetLeft - shift.x;
 
-        // определям блок для точек
-        var pinsList = document.querySelector('.map__pins');
+      // считаем высоту пина с учетом псевдоэлемента
+      var elementHeight = parseInt(getComputedStyle(mainPin).height, 10) + parseInt(getComputedStyle(mainPin, ':after').height, 10);
 
-        // отрисовка точек на карте после загрузки данных
-        var onLoad = function (data) {
-          // сразу экспортируем данные в глобальную область видимости, для отрисовки попапа
-          window.ads = data;
-          // обрезаем массив до n-элементов по ТЗ
-          var slicedAds = window.ads.slice(PINS_AMOUNT);
-          // вставляем
-          pinsList.append(window.pins.draw(slicedAds));
-          // ловим отрисованные точки и регистрируем им обработчики
-          mapPins = document.querySelectorAll('.map__pin:not(.map__pin--main)');
-          mapPins.forEach(function (pin) {
-            pin.addEventListener('mouseup', mapPinClickHandler);
-            pin.addEventListener('keydown', mapPinKeyDownHandler);
-          });
-        };
-        // функция загрузки с коллбеком
-        window.backend.download(onLoad, window.backend.error);
+      // проверяем выходит ли пин за ограничения
+      if (pinYCoord < window.constants.pinTopStop - elementHeight) {
+        pinYCoord = window.constants.pinTopStop - elementHeight;
       }
 
-      // пишем начальные координаты в переменную
-      var startCoords = {
-        x: evt.clientX,
-        y: evt.clientY
-      };
+      if (pinYCoord > window.constants.pinBottomStop - elementHeight) {
+        pinYCoord = window.constants.pinBottomStop - elementHeight;
+      }
 
-      // обработчик перемещения мыши
-      var onMouseMove = function (moveEvt) {
-        // отменяем события по умолчанию
-        moveEvt.preventDefault();
+      if (pinXCoord < 0) {
+        pinXCoord = 0;
+      }
 
-        // считаем разницу между начальными координатами и точкой куда переместили блок
-        var shift = {
-          x: startCoords.x - moveEvt.clientX,
-          y: startCoords.y - moveEvt.clientY
-        };
+      // в случае с правой стороной из ширины карты вычитаем еще и ширину самого пина
+      if (pinXCoord > map.offsetWidth - mainPin.offsetWidth) {
+        pinXCoord = map.offsetWidth - mainPin.offsetWidth;
+      }
 
-        // перезаписываем начальные координаты
-        startCoords = {
-          x: moveEvt.clientX,
-          y: moveEvt.clientY
-        };
+      // устанавливаем стили
+      mainPin.style.top = pinYCoord + 'px';
+      mainPin.style.left = pinXCoord + 'px';
 
-        // переопределяем переменные для удобства
-        var pinYCoord = element.offsetTop - shift.y;
-        var pinXCoord = element.offsetLeft - shift.x;
+      // переопределяем адресс
+      window.pin.address();
+    };
 
-        // считаем высоту пина с учетом псевдоэлемента
-        var elementHeight = parseInt(getComputedStyle(element).height, 10) + parseInt(getComputedStyle(element, ':after').height, 10);
+    // обработчик "отжатия" мыши
+    var onMouseUp = function (upEvt) {
+      // отменяем события по умолчанию
+      upEvt.preventDefault();
 
-        // проверяем выходит ли пин за ограничения
-        if (pinYCoord < TOP_STOP - elementHeight) {
-          pinYCoord = TOP_STOP - elementHeight;
-        }
+      // переопределяем адресс
+      window.pin.address();
 
-        if (pinYCoord > BOTTOM_STOP - elementHeight) {
-          pinYCoord = BOTTOM_STOP - elementHeight;
-        }
+      // удаляем обработчики событий с блока
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
 
-        if (pinXCoord < 0) {
-          pinXCoord = 0;
-        }
-
-        // в случае с правой стороной из ширины карты вычитаем еще и ширину самого пина
-        if (pinXCoord > map.offsetWidth - element.offsetWidth) {
-          pinXCoord = map.offsetWidth - element.offsetWidth;
-        }
-
-        // устанавливаем стили
-        element.style.top = pinYCoord + 'px';
-        element.style.left = pinXCoord + 'px';
-
-        // переопределяем адресс
-        address = window.map.address(element);
-        addressInput.value = String(address);
-      };
-
-      // обработчик "отжатия" мыши
-      var onMouseUp = function (upEvt) {
-        // отменяем события по умолчанию
-        upEvt.preventDefault();
-
-        // переопределяем адресс
-        address = window.map.address(element);
-        addressInput.value = String(address);
-
-        // удаляем обработчики событий с блока
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      };
-
-      // подписываемся на события нажития мыши и "отжатия" мыши на окне
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-    });
+    // подписываемся на события нажития мыши и "отжатия" мыши на окне
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   };
+
+  // функция обработчика нажатия кнопки на главный пин
+  var mainPinKeyDownHandler = function (evt) {
+    // отменяем события по умолчанию
+    evt.preventDefault();
+
+    // активируем страницу
+    pageActivate();
+
+    // удаляем обработчик
+    mainPin.removeEventListener('keydown', mainPinKeyDownHandler);
+  };
+
+  // навешиваем обработчик на нажите мыши
+  mainPin.addEventListener('mousedown', mainPinDragHandler);
+
+  // навешиваем обработчик на нажите кнопки
+  mainPin.addEventListener('keydown', mainPinKeyDownHandler);
+
+  window.pin = {
+    address: function () {
+      var leftOffset = parseInt(mainPin.style.left, 10);
+      var topOffset = parseInt(mainPin.style.top, 10);
+      var height;
+      // разный рассчет высоты главного пина в зависимости от состояния карты
+      if (map.classList.contains('map--faded')) {
+        height = Math.floor(parseInt(getComputedStyle(mainPin).height, 10) / 2);
+      } else {
+        height = parseInt(getComputedStyle(mainPin).height, 10) + parseInt(getComputedStyle(mainPin, ':after').height, 10);
+      }
+      var halfWidth = Math.floor(parseInt(getComputedStyle(mainPin).width, 10) / 2);
+      var x = leftOffset + halfWidth;
+      var y = topOffset + height;
+      var addressString = x + ', ' + y;
+      addressInput.value = addressString;
+    },
+    reset: function () {
+      mainPin.style.top = window.constants.pinDefaultX;
+      mainPin.style.left = window.constants.pinDefaultY;
+      window.pin.address();
+    }
+  };
+
+  // устанавливаем адрес при загрузке страницы
+  window.pin.address();
 })();

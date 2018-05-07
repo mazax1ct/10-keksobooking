@@ -40,10 +40,10 @@
     'http://o0.github.io/assets/images/tokyo/hotel3.jpg'
   ];
 
-  var ADS_COUNT = 8;*/
+  var ADS_COUNT = 8;
 
   // функция создание массива объявлений
-  /* var makeAdsArray = function () {
+  var makeAdsArray = function () {
     var adsArray = [];
     for (var i = 0; i < ADS_COUNT; i++) {
       var x = String(window.util.getRandomArbitary(300, 900));
@@ -76,5 +76,4 @@
     }
     return adsArray;
   };*/
-  // записываем результат в переменную и экспортируем в глобальную область видимости
 })();
